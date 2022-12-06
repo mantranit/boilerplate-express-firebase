@@ -8,7 +8,7 @@ export default class CatController {
 
   @Get("")
   public index(req: Request, res: Response, next: NextFunction): void {
-    res.data = this.cats;
+    res.locals.data = this.cats;
     next();
   }
 
@@ -25,7 +25,7 @@ export default class CatController {
     if (!foundCat) {
       throw new Error("Cat not found!!!!!!!!!!!");
     }
-    res.data = { cat: foundCat };
+    res.locals.data = { cat: foundCat };
     next();
   }
 }

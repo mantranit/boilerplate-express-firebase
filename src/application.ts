@@ -35,8 +35,8 @@ class Application {
           (req: Request, res: Response) => {
             res.json({
               success: true,
-              message: res.message || 'Successful',
-              data: res.data || {},
+              message: res.locals.message || 'Successful',
+              data: res.locals.data || {},
             });
           }
         );
