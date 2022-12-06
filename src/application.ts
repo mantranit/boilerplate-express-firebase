@@ -1,4 +1,4 @@
-import express, { Application as ExApplication, Handler } from 'express';
+import express, { Application as ExApplication, Handler, NextFunction, Request, Response } from 'express';
 import { controllers } from './controllers';
 import { MetadataKeys } from './utils/metadata.keys';
 import { IRouter } from './utils/decorators/handlers.decorator';
@@ -14,13 +14,10 @@ class Application {
     this._instance = express();
     this._instance.use(express.json());
     this.registerRouters();
+    this.handleErrors();
   }
 
-  private registerRouters() {
-    this._instance.get('/', (req, res) => {
-      res.json({ message: 'Hello World!' });
-    });
-
+  private registerRouters(): void {
     const info: Array<{ api: string, handler: string }> = [];
 
     controllers.forEach((controllerClass) => {
@@ -32,7 +29,17 @@ class Application {
       const exRouter = express.Router();
 
       routers.forEach(({ method, path, handlerName}) => {
-        exRouter[method](path, controllerInstance[String(handlerName)].bind(controllerInstance));
+        exRouter[method](
+          path,
+          controllerInstance[String(handlerName)].bind(controllerInstance),
+          (req: Request, res: Response) => {
+            res.json({
+              success: true,
+              message: res.message || 'Successful',
+              data: res.data || {},
+            });
+          }
+        );
 
         info.push({
           api: `${method.toLocaleUpperCase()} ${basePath + path}`,
@@ -44,6 +51,17 @@ class Application {
     });
 
     console.table(info);
+  }
+
+  private handleErrors(): void {
+    this._instance.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+      console.log(typeof err, err.name, err.message);
+      res.status(404).json({
+        success: false,
+        message: err.message || 'Fail',
+        data: null,
+      })
+    });
   }
 }
 
