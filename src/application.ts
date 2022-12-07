@@ -62,7 +62,6 @@ class Application {
           (req: Request, res: Response) => {
             res.json({
               success: true,
-              statusCode: 200,
               message: res.locals.message || "Success",
               data: res.locals.data || null,
             });
@@ -83,7 +82,7 @@ class Application {
   private handleErrors(): void {
     this._instance.use(
       (err: Error, req: Request, res: Response, next: NextFunction) => {
-        let statusCode = 500;
+        let statusCode = 520;
         if (err instanceof BadRequestError) {
           statusCode = 400;
         } else if (err instanceof UnauthorizedError) {
@@ -102,7 +101,6 @@ class Application {
 
         res.status(statusCode).json({
           success: false,
-          statusCode,
           message: err.message || "Failure",
           data: null,
         });

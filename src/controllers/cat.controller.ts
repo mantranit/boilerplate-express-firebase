@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import Controller from "../decorators/controller";
 import { Get, Post } from "../decorators/handlers";
+import { NotFoundError } from "../utils/errors";
 
 @Controller("/cats")
 export default class CatController {
@@ -23,7 +24,7 @@ export default class CatController {
     const { name } = req.params;
     const foundCat = this.cats.find((c) => c.name === name);
     if (!foundCat) {
-      throw new Error("Cat not found!!!!!!!!!!!");
+      throw new NotFoundError("Cat not found!!!!!!!!!!!");
     }
     res.locals.data = { cat: foundCat };
     next();

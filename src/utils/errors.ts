@@ -1,39 +1,63 @@
-export declare class HttpError extends Error {
-    httpCode: number;
-    constructor(httpCode: number, message?: string);
+export class BadRequestError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = "BadRequestError";
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
 }
 
-export declare class BadRequestError extends HttpError {
-    name: string;
-    constructor(message?: string);
+export class UnauthorizedError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = "UnauthorizedError";
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
 }
 
-export declare class ForbiddenError extends HttpError {
-    name: string;
-    constructor(message?: string);
+export class PaymentRequiredError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = "PaymentRequiredError";
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
 }
 
-export declare class InternalServerError extends HttpError {
-    name: string;
-    constructor(message: string);
+export class ForbiddenError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = "ForbiddenError";
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
 }
 
-export declare class MethodNotAllowedError extends HttpError {
-    name: string;
-    constructor(message?: string);
+export class NotFoundError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = "NotFoundError";
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
 }
 
-export declare class NotAcceptableError extends HttpError {
-    name: string;
-    constructor(message?: string);
+export class MethodNotAllowedError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = "MethodNotAllowedError";
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
 }
 
-export declare class NotFoundError extends HttpError {
-    name: string;
-    constructor(message?: string);
+export class NotAcceptableError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = "NotAcceptableError";
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
 }
 
-export declare class UnauthorizedError extends HttpError {
-    name: string;
-    constructor(message?: string);
+export class InternalServerError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = "InternalServerError";
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
 }
