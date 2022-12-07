@@ -19,6 +19,7 @@ import {
   UnauthorizedError,
 } from "./utils/errors";
 import { IRouter } from "./decorators/handlers";
+import { IAuthorize } from "./decorators/authorize";
 
 class Application {
   private readonly _instance: ExApplication;
@@ -50,12 +51,30 @@ class Application {
         MetadataKeys.ROUTERS,
         controllerClass
       );
+      const authorizes: IAuthorize[] = Reflect.getMetadata(
+        MetadataKeys.AUTHORIZE,
+        controllerClass
+      );
 
       const exRouter = express.Router();
 
       routers.forEach(({ method, path, handlerName }) => {
         exRouter[method](
           path,
+          (req: Request, res: Response, next: NextFunction) => {
+            let roles: string[] = [];
+            for (let i = 0; i < authorizes.length; i++) {
+              if (authorizes[i].handlerName === handlerName) {
+                roles = authorizes[i].roles;
+              }
+            }
+            if (roles.length > 0) {
+              if (!roles.includes(res.locals?.session?.roles)) {
+                throw new UnauthorizedError("Unauthorized Error");
+              }
+            }
+            next();
+          },
           controllerInstance[String(handlerName)].bind(controllerInstance),
           (req: Request, res: Response) => {
             res.json({
