@@ -38,8 +38,6 @@ class Application {
   }
 
   private registerRouters(): void {
-    const info: Array<{ api: string; handler: string }> = [];
-
     controllers.forEach((controllerClass) => {
       const controllerInstance: { [handleName: string]: Handler } =
         new controllerClass() as any;
@@ -67,16 +65,10 @@ class Application {
             });
           }
         );
-
-        info.push({
-          api: `${method.toLocaleUpperCase()} ${basePath + path}`,
-          handler: `${controllerClass.name}.${String(handlerName)}`,
-        });
       });
 
       this._instance.use(basePath, exRouter);
     });
-    console.table(info);
   }
 
   private handleErrors(): void {
