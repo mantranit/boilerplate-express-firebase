@@ -1,7 +1,24 @@
-import express, { Application as ExApplication, Handler, NextFunction, Request, Response } from 'express';
-import { controllers } from './controllers';
-import { MetadataKeys } from './utils/metadata.keys';
-import { IRouter } from './utils/decorators/handlers.decorator';
+import express, {
+  Application as ExApplication,
+  Handler,
+  NextFunction,
+  Request,
+  Response,
+} from "express";
+import cookieParser from "cookie-parser";
+import morgan from "./middlewares/morgan";
+import { controllers } from "./controllers";
+import { MetadataKeys } from "./utils/metadata.keys";
+import {
+  BadRequestError,
+  ForbiddenError,
+  InternalServerError,
+  MethodNotAllowedError,
+  NotAcceptableError,
+  NotFoundError,
+  UnauthorizedError,
+} from "./utils/errors";
+import { IRouter } from "./decorators/handlers";
 
 class Application {
   private readonly _instance: ExApplication;
@@ -12,31 +29,42 @@ class Application {
 
   constructor() {
     this._instance = express();
+    this._instance.use(morgan);
     this._instance.use(express.json());
+    this._instance.use(express.urlencoded({ extended: false }));
+    this._instance.use(cookieParser());
     this.registerRouters();
     this.handleErrors();
   }
 
   private registerRouters(): void {
-    const info: Array<{ api: string, handler: string }> = [];
+    const info: Array<{ api: string; handler: string }> = [];
 
     controllers.forEach((controllerClass) => {
-      const controllerInstance: { [handleName: string]: Handler } = new controllerClass() as any;
+      const controllerInstance: { [handleName: string]: Handler } =
+        new controllerClass() as any;
 
-      const basePath: string = Reflect.getMetadata(MetadataKeys.BASE_PATH, controllerClass);
-      const routers: IRouter[] = Reflect.getMetadata(MetadataKeys.ROUTERS, controllerClass);
+      const basePath: string = Reflect.getMetadata(
+        MetadataKeys.BASE_PATH,
+        controllerClass
+      );
+      const routers: IRouter[] = Reflect.getMetadata(
+        MetadataKeys.ROUTERS,
+        controllerClass
+      );
 
       const exRouter = express.Router();
 
-      routers.forEach(({ method, path, handlerName}) => {
+      routers.forEach(({ method, path, handlerName }) => {
         exRouter[method](
           path,
           controllerInstance[String(handlerName)].bind(controllerInstance),
           (req: Request, res: Response) => {
             res.json({
               success: true,
-              message: res.locals.message || 'Successful',
-              data: res.locals.data || {},
+              statusCode: 200,
+              message: res.locals.message || "Success",
+              data: res.locals.data || null,
             });
           }
         );
@@ -49,19 +77,37 @@ class Application {
 
       this._instance.use(basePath, exRouter);
     });
-
     console.table(info);
   }
 
   private handleErrors(): void {
-    this._instance.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-      console.log(typeof err, err.name, err.message);
-      res.status(404).json({
-        success: false,
-        message: err.message || 'Fail',
-        data: null,
-      })
-    });
+    this._instance.use(
+      (err: Error, req: Request, res: Response, next: NextFunction) => {
+        let statusCode = 500;
+        if (err instanceof BadRequestError) {
+          statusCode = 400;
+        } else if (err instanceof UnauthorizedError) {
+          statusCode = 401;
+        } else if (err instanceof ForbiddenError) {
+          statusCode = 403;
+        } else if (err instanceof NotFoundError) {
+          statusCode = 404;
+        } else if (err instanceof MethodNotAllowedError) {
+          statusCode = 405;
+        } else if (err instanceof NotAcceptableError) {
+          statusCode = 406;
+        } else if (err instanceof InternalServerError) {
+          statusCode = 500;
+        }
+
+        res.status(statusCode).json({
+          success: false,
+          statusCode,
+          message: err.message || "Failure",
+          data: null,
+        });
+      }
+    );
   }
 }
 
