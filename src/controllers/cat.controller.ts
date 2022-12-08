@@ -14,6 +14,7 @@ export default class CatController {
   @Get("/")
   public index(req: Request, res: Response, next: NextFunction): void {
     res.locals.data = this.cats;
+    req.app.locals.io.emit("ping", { name: "name" });
     next();
   }
 
