@@ -6,6 +6,7 @@ import express, {
   Response,
 } from "express";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import morgan from "./middlewares/morgan";
 import { controllers } from "./controllers";
 import { MetadataKeys } from "./utils/metadata.keys";
@@ -34,6 +35,7 @@ class Application {
     this._instance.use(morgan);
     this._instance.use(express.json());
     this._instance.use(express.urlencoded({ extended: false }));
+    this._instance.use(cors({ origin: "*" }));
     this._instance.use(cookieParser());
     this.registerRouters();
     this.handleErrors();
