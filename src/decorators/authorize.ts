@@ -1,11 +1,12 @@
+import { UserRoles } from "../utils/enums";
 import { MetadataKeys } from "../utils/metadata.keys";
 
 export interface IAuthorize {
-  roles: string[];
+  roles: UserRoles[] | string;
   handlerName: string | symbol;
 }
 
-const Authorize = (roles: string[]): MethodDecorator => {
+const Authorize = (roles: UserRoles[] | string = "*"): MethodDecorator => {
   return (target, propertyKey) => {
     const controllerClass = target.constructor;
 

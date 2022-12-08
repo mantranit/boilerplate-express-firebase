@@ -1,19 +1,13 @@
+import { HttpMethods } from '../utils/enums';
 import { MetadataKeys } from '../utils/metadata.keys';
 
-export enum Methods {
-  GET = 'get',
-  POST = 'post',
-  PUT = 'put',
-  DELETE = 'delete',
-}
-
 export interface IRouter {
-  method: Methods;
+  method: HttpMethods;
   path: string;
   handlerName: string | symbol;
 }
 
-const methodDecoratorFactory = (method: Methods) => {
+const methodDecoratorFactory = (method: HttpMethods) => {
   return (path: string): MethodDecorator => {
     return (target, propertyKey) => {
       const controllerClass = target.constructor;
@@ -32,7 +26,7 @@ const methodDecoratorFactory = (method: Methods) => {
   }
 }
 
-export const Get = methodDecoratorFactory(Methods.GET);
-export const Post = methodDecoratorFactory(Methods.POST);
-export const Put = methodDecoratorFactory(Methods.PUT);
-export const Delete = methodDecoratorFactory(Methods.DELETE);
+export const Get = methodDecoratorFactory(HttpMethods.GET);
+export const Post = methodDecoratorFactory(HttpMethods.POST);
+export const Put = methodDecoratorFactory(HttpMethods.PUT);
+export const Delete = methodDecoratorFactory(HttpMethods.DELETE);

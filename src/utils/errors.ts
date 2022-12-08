@@ -1,63 +1,63 @@
 export class BadRequestError extends Error {
-  constructor(message?: string) {
+  constructor(message: string = 'Bad Request') {
     super(message);
-    this.name = "BadRequestError";
+    this.name = this.constructor.name;
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 
 export class UnauthorizedError extends Error {
-  constructor(message?: string) {
+  constructor(message: string = 'Unauthorized') {
     super(message);
-    this.name = "UnauthorizedError";
+    this.name = this.constructor.name;
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 
 export class PaymentRequiredError extends Error {
-  constructor(message?: string) {
+  constructor(message: string = 'Payment Required') {
     super(message);
-    this.name = "PaymentRequiredError";
+    this.name = this.constructor.name;
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 
 export class ForbiddenError extends Error {
-  constructor(message?: string) {
+  constructor(message: string = 'Forbidden') {
     super(message);
-    this.name = "ForbiddenError";
+    this.name = this.constructor.name;
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 
 export class NotFoundError extends Error {
-  constructor(message?: string) {
+  constructor(message: string = 'Not Found') {
     super(message);
-    this.name = "NotFoundError";
+    this.name = this.constructor.name;
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 
 export class MethodNotAllowedError extends Error {
-  constructor(message?: string) {
+  constructor(message: string = 'Method Not Allowed') {
     super(message);
-    this.name = "MethodNotAllowedError";
+    this.name = this.constructor.name;
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 
 export class NotAcceptableError extends Error {
-  constructor(message?: string) {
+  constructor(message: string = 'Not Acceptable') {
     super(message);
-    this.name = "NotAcceptableError";
+    this.name = this.constructor.name;
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 
 export class InternalServerError extends Error {
-  constructor(message?: string) {
+  constructor(message: string = 'Internal Server Error') {
     super(message);
-    this.name = "InternalServerError";
+    this.name = this.constructor.name;
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
