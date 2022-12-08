@@ -80,7 +80,7 @@ class Application {
               if (typeof roles === "string") {
                 roles = [roles as UserRoles];
               }
-              
+
               if (!roles.includes(res.locals?.session?.roles)) {
                 throw new ForbiddenError();
               }
@@ -94,6 +94,7 @@ class Application {
               success: true,
               message: res.locals.message || "Success",
               data: res.locals.data || null,
+              session: res.locals.session,
             });
           }
         );
@@ -127,6 +128,7 @@ class Application {
           success: false,
           message: err.message || "Failure",
           data: null,
+          session: res.locals.session,
         });
       }
     );
