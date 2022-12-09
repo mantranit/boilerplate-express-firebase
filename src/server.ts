@@ -1,12 +1,10 @@
 import "reflect-metadata";
-import dotenv from "dotenv";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
 import application from "./application";
 import Logger from "./utils/logger";
-
-dotenv.config();
+import config from "./utils/config";
 
 const PORT = process.env.PORT || 3000;
 
@@ -23,7 +21,7 @@ io.on("connection", (socket) => {
   });
 });
 
-httpServer.listen(PORT, () => {
+httpServer.listen(config.port, () => {
   Logger.debug(`Server is listening on :${PORT}`);
 });
 

@@ -8,7 +8,7 @@ import express, {
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import morgan from "./middlewares/morgan";
-import { controllers } from "./controllers";
+import { appRouters } from "./routers";
 import { MetadataKeys } from "./utils/metadata.keys";
 import {
   BadRequestError,
@@ -42,67 +42,66 @@ class Application {
   }
 
   private registerRouters(): void {
-    controllers.forEach((controllerClass) => {
-      const controllerInstance: { [handleName: string]: Handler } =
-        new controllerClass() as any;
+    appRouters.forEach((appRouter) => {
+      const { rootPath, controllers } = appRouter;
+      controllers.forEach((controllerClass) => {
+        const controllerInstance: { [handleName: string]: Handler } =
+          new controllerClass() as any;
 
-      const basePath: string = Reflect.getMetadata(
-        MetadataKeys.BASE_PATH,
-        controllerClass
-      );
-      const authenticate: string = Reflect.getMetadata(
-        MetadataKeys.AUTHENTICATE,
-        controllerClass
-      );
-      const routers: IRouter[] = Reflect.getMetadata(
-        MetadataKeys.ROUTERS,
-        controllerClass
-      );
-      const authorizes: IAuthorize[] =
-        Reflect.getMetadata(MetadataKeys.AUTHORIZE, controllerClass) || [];
-
-      const exRouter = express.Router();
-
-      routers.forEach(({ method, path, handlerName }) => {
-        exRouter[method](
-          path,
-          (req: Request, res: Response, next: NextFunction) => {
-            let roles: UserRoles[] | string = authenticate;
-
-            for (let i = 0; i < authorizes.length; i++) {
-              if (authorizes[i].handlerName === handlerName) {
-                roles = authorizes[i].roles;
-              }
-            }
-
-            if (roles) {
-              if (roles === "*" && !res.locals?.session?.roles) {
-                throw new UnauthorizedError();
-              }
-              if (typeof roles === "string") {
-                roles = [roles as UserRoles];
-              }
-
-              if (!roles.includes(res.locals?.session?.roles)) {
-                throw new ForbiddenError();
-              }
-            }
-
-            next();
-          },
-          controllerInstance[String(handlerName)].bind(controllerInstance),
-          (req: Request, res: Response) => {
-            res.json({
-              success: true,
-              message: res.locals.message || "Success",
-              data: res.locals.data || null,
-              session: res.locals.session,
-            });
-          }
+        const basePath: string = Reflect.getMetadata(
+          MetadataKeys.BASE_PATH,
+          controllerClass
         );
-      });
+        const authenticate: string = Reflect.getMetadata(
+          MetadataKeys.AUTHENTICATE,
+          controllerClass
+        );
+        const routers: IRouter[] = Reflect.getMetadata(
+          MetadataKeys.ROUTERS,
+          controllerClass
+        );
+        const authorizes: IAuthorize[] =
+          Reflect.getMetadata(MetadataKeys.AUTHORIZE, controllerClass) || [];
 
-      this._instance.use(basePath, exRouter);
+        const exRouter = express.Router();
+
+        routers.forEach(({ method, path, handlerName }) => {
+          exRouter[method](
+            path,
+            (req: Request, res: Response, next: NextFunction) => {
+              let roles: UserRoles[] | string = authenticate;
+              for (let i = 0; i < authorizes.length; i++) {
+                if (authorizes[i].handlerName === handlerName) {
+                  roles = authorizes[i].roles;
+                }
+              }
+              if (roles) {
+                if (roles === "*" && !res.locals?.session?.roles) {
+                  throw new UnauthorizedError();
+                }
+
+                if (typeof roles === "string") {
+                  roles = [roles as UserRoles];
+                }
+                if (!roles.includes(res.locals?.session?.roles)) {
+                  throw new ForbiddenError();
+                }
+              }
+              next();
+            },
+            controllerInstance[String(handlerName)].bind(controllerInstance),
+            (req: Request, res: Response) => {
+              res.json({
+                success: true,
+                message: res.locals.message || "Success",
+                data: res.locals.data || null,
+                session: res.locals.session,
+              });
+            }
+          );
+        });
+        this._instance.use(`${rootPath}${basePath}`, exRouter);
+      });
     });
   }
 
