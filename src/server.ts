@@ -1,14 +1,19 @@
-import "reflect-metadata";
+import express from "express";
 import { createServer } from "http";
+import path from "path";
+import "reflect-metadata";
 import { Server } from "socket.io";
 
 import application from "./application";
 import Logger from "./utils/logger";
 import config from "./utils/config";
 
-const PORT = process.env.PORT || 3000;
-
 const { instance: app } = application;
+
+app.use(express.static(path.join(__dirname, "../public")));
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "../views"));
+
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   /* options */

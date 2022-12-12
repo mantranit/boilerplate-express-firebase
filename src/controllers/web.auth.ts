@@ -6,6 +6,6 @@ import { Get, Post } from "../decorators/handlers";
 export default class WebAuthController {
   @Get("/reset-password")
   public index(req: Request, res: Response, next: NextFunction): void {
-    res.send("<h1>/reset-password</h1>");
+    res.render("reset-password", { token: "token", error: {} });
   }
 }
