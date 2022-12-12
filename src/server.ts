@@ -22,7 +22,7 @@ io.on("connection", (socket) => {
 });
 
 httpServer.listen(config.port, () => {
-  Logger.debug(`Server is listening on :${PORT}`);
+  Logger.debug(`Server is listening on :${config.port}`);
 });
 
 app.locals.io = io;
