@@ -1,7 +1,6 @@
 import express from "express";
 import * as admin from "firebase-admin";
 import { ServiceAccount } from "firebase-admin";
-import * as serviceAccountKey from "./homework-firebase-adminsdk.json";
 
 import { createServer } from "http";
 import path from "path";
@@ -37,7 +36,11 @@ httpServer.listen(config.port, () => {
 app.locals.io = io;
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccountKey as ServiceAccount),
+  credential: admin.credential.cert({
+    projectId: config.projectId,
+    clientEmail: config.clientEmail,
+    privateKey: config.privateKey,
+  } as ServiceAccount),
 });
 
 app.locals.admin = admin;
