@@ -37,8 +37,30 @@ class Application {
     this._instance.use(express.urlencoded({ extended: false }));
     this._instance.use(cors({ origin: "*" }));
     this._instance.use(cookieParser());
+    this.middleware();
     this.registerRouters();
     this.handleErrors();
+  }
+
+  private middleware(): void {
+    this._instance.use(
+      async (req: Request, res: Response, next: NextFunction) => {
+        res.locals.session = null;
+        try {
+          const { authorization } = req.headers;
+          if (authorization) {
+            const tmp = authorization.split(" ");
+            if (tmp[0] === "Bearer") {
+              const { admin } = req.app.locals;
+              res.locals.session = await admin.auth().verifyIdToken(tmp[1]);
+            }
+          }
+          next();
+        } catch (error) {
+          next(error);
+        }
+      }
+    );
   }
 
   private registerRouters(): void {
@@ -76,7 +98,10 @@ class Application {
                 }
               }
               if (roles) {
-                if (roles === "*" && !res.locals?.session?.roles) {
+                if (
+                  roles === "*" &&
+                  !res.locals?.session?.roles
+                ) {
                   throw new UnauthorizedError();
                 }
 
