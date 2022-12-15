@@ -22,7 +22,6 @@ import {
 import { IRouter } from "./decorators/handlers";
 import { IAuthorize } from "./decorators/authorize";
 import { UserRoles } from "./utils/enums";
-import config from "./utils/config";
 
 class Application {
   private readonly _instance: ExApplication;
@@ -58,11 +57,7 @@ class Application {
           }
           next();
         } catch (error) {
-          next(
-            config.env === "development"
-              ? error
-              : new BadRequestError("Decoding token failed.")
-          );
+          next(error);
         }
       }
     );
