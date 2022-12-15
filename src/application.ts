@@ -50,7 +50,7 @@ class Application {
           const { authorization } = req.headers;
           if (authorization) {
             const tmp = authorization.split(" ");
-            if (tmp[0] === "Bearer") {
+            if (tmp.length === 2 && tmp[0] === "Bearer") {
               const { admin } = req.app.locals;
               res.locals.session = await admin.auth().verifyIdToken(tmp[1]);
             }
@@ -98,10 +98,7 @@ class Application {
                 }
               }
               if (roles) {
-                if (
-                  roles === "*" &&
-                  !res.locals?.session?.roles
-                ) {
+                if (roles === "*" && !res.locals?.session?.roles) {
                   throw new UnauthorizedError();
                 }
 

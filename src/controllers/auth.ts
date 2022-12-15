@@ -1,17 +1,13 @@
 import { NextFunction, Request, response, Response } from "express";
+import Authenticate from "../decorators/authenticate";
+import Authorize from "../decorators/authorize";
 import Controller from "../decorators/controller";
 import { Post } from "../decorators/handlers";
 import { UserRoles } from "../utils/enums";
-import { BadRequestError } from "../utils/errors";
+import { BadRequestError, UnauthorizedError } from "../utils/errors";
 
 @Controller("/")
 export default class AuthController {
-  @Post("/session")
-  public session(req: Request, res: Response, next: NextFunction): void {
-    res.locals.data = req.body;
-    next();
-  }
-
   @Post("/register")
   public async register(
     req: Request,
@@ -19,28 +15,19 @@ export default class AuthController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { idToken, email, password, role = UserRoles.USER } = req.body;
-      const { admin } = req.app.locals;
+      const { role = UserRoles.USER } = req.body;
+      const { admin, session } = req.app.locals;
 
       if (!Object.values(UserRoles).includes(role)) {
         throw new BadRequestError("Invalid role!");
       }
-      let uid;
-      if (idToken) {
-        const claims = await admin.auth().verifyIdToken(idToken);
-        await admin.auth().setCustomUserClaims(claims.sub, { role });
-        uid = claims.sub;
-      } else {
-        if (!(email && password)) {
-          throw new BadRequestError();
-        }
-        const user = await admin.auth().createUser(req.body);
-        await admin.auth().setCustomUserClaims(user.uid, { role });
-        uid = user.uid;
+      if (!session) {
+        throw new UnauthorizedError();
       }
-      res.locals.data = {
-        user: await admin.auth().getUser(uid),
-      };
+
+      const { sub: uid } = session;
+      await admin.auth().setCustomUserClaims(uid, { role });
+
       next();
     } catch (error) {
       next(error);
