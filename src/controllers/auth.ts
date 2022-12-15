@@ -16,7 +16,7 @@ export default class AuthController {
   ): Promise<void> {
     try {
       const { role = UserRoles.USER } = req.body;
-      const { admin, session } = req.app.locals;
+      const { session } = res.locals;
 
       if (!Object.values(UserRoles).includes(role)) {
         throw new BadRequestError("Invalid role!");
@@ -26,6 +26,7 @@ export default class AuthController {
       }
 
       const { sub: uid } = session;
+      const { admin } = req.app.locals;
       await admin.auth().setCustomUserClaims(uid, { role });
 
       next();
