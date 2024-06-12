@@ -27,7 +27,7 @@ export default class AuthController {
       });
       await admin.auth().setCustomUserClaims(userRecord.uid, { role });
 
-      const db = getFirestore();
+      const db = admin.firestore();
       await db
         .collection("users")
         .doc(userRecord.uid)
