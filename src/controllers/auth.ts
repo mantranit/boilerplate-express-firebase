@@ -5,6 +5,7 @@ import Controller from "../decorators/controller";
 import { Post } from "../decorators/handlers";
 import { UserRoles } from "../utils/enums";
 import { BadRequestError, UnauthorizedError } from "../utils/errors";
+import { getFirestore } from "firebase-admin/firestore";
 
 @Controller("/")
 export default class AuthController {
@@ -15,19 +16,22 @@ export default class AuthController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { role = UserRoles.USER } = req.body;
-      const { session } = res.locals;
+      const { role = UserRoles.USER, ...restBody } = req.body;
 
       if (!Object.values(UserRoles).includes(role)) {
         throw new BadRequestError("Invalid role!");
       }
-      if (!session) {
-        throw new UnauthorizedError();
-      }
-
-      const { sub: uid } = session;
       const { admin } = req.app.locals;
-      await admin.auth().setCustomUserClaims(uid, { role });
+      const userRecord = await admin.auth().createUser({
+        ...restBody,
+      });
+      await admin.auth().setCustomUserClaims(userRecord.uid, { role });
+
+      const db = getFirestore();
+      await db
+        .collection("users")
+        .doc(userRecord.uid)
+        .set({ refreshTime: new Date().getTime() });
 
       next();
     } catch (error) {
