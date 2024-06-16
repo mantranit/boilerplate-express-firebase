@@ -38,4 +38,20 @@ export default class AuthController {
       next(error);
     }
   }
+
+  @Post("/user/:user_id")
+  public async user(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { admin } = req.app.locals;
+      await admin.auth().setCustomUserClaims(req.params.user_id, { role: 'user' });
+      
+      next();
+    } catch (error) {
+      next(error);
+    }
+  }
 }
