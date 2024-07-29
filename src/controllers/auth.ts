@@ -82,7 +82,7 @@ export default class AuthController {
         email,
       });
       if (!user) {
-        return next(new NotFoundError("This email is not founded."));
+        return next(new NotFoundError("Email was not found."));
       }
       if (user.status !== UserStatus.ACTIVE) {
         return next(
@@ -132,20 +132,20 @@ export default class AuthController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { __refreshToken: token } = req.cookies;
+      const { __refreshToken: refToken } = req.cookies;
       const { dataSource } = req.app.locals;
-      const sessionRepository = dataSource.getRepository(Session);
 
+      jwt.verify(refToken, config.jwtRefreshKey);
+
+      const sessionRepository = dataSource.getRepository(Session);
       const session = await sessionRepository.findOneBy({
-        refreshToken: token,
+        refreshToken: refToken,
       });
       if (!session) {
-        return next(new BadRequestError("Invalid refresh token."));
+        return next(new BadRequestError("Session was not found."));
       }
-      jwt.verify(token, config.jwtRefreshKey);
-
-      const accessToken = getAccessToken(session.user.id);
-      session.accessToken = accessToken;
+      const newToken = getAccessToken(session.user.id);
+      session.accessToken = newToken;
       const results = await sessionRepository.save(session);
 
       res.locals.data = {
