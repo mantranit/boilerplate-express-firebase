@@ -1,11 +1,18 @@
-import { NextFunction, Request, response, Response } from "express";
-import Authenticate from "../decorators/authenticate";
-import Authorize from "../decorators/authorize";
+import { NextFunction, Request, Response } from "express";
 import Controller from "../decorators/controller";
 import { Post } from "../decorators/handlers";
-import { UserRoles } from "../utils/enums";
-import { BadRequestError, UnauthorizedError } from "../utils/errors";
-import { getFirestore } from "firebase-admin/firestore";
+import {
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
+} from "../utils/errors";
+import { User, UserStatus } from "../database/entities/User";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { validateEmail, validatePassword } from "../utils/validations";
+import { Session } from "../database/entities/Session";
+import config from "../utils/config";
+import { getAccessToken, getRefreshToken } from "../utils/tokens";
 
 @Controller("/")
 export default class AuthController {
@@ -16,39 +23,136 @@ export default class AuthController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { role = UserRoles.USER, ...restBody } = req.body;
+      const { email, password } = req.body;
+      const { dataSource } = req.app.locals;
+      const userRepository = dataSource.getRepository(User);
 
-      if (!Object.values(UserRoles).includes(role)) {
-        throw new BadRequestError("Invalid role!");
+      // validate
+      if (!(email && validateEmail(email))) {
+        return next(
+          new BadRequestError("Please enter an valid email address.")
+        );
       }
-      const { admin } = req.app.locals;
-      const userRecord = await admin.auth().createUser({
-        ...restBody,
+      const existEmail = await userRepository.findOneBy({ email });
+      if (existEmail) {
+        return next(new BadRequestError("This email already exists."));
+      }
+      if (!password) {
+        return next(new BadRequestError("Please enter your password."));
+      }
+      if (password && !validatePassword(password)) {
+        return next(
+          new BadRequestError("Password does not meet requirements.")
+        );
+      }
+
+      const user = await userRepository.create({
+        email,
+        hashPassword: bcrypt.hashSync(password, 12),
       });
-      await admin.auth().setCustomUserClaims(userRecord.uid, { role });
 
-      const db = admin.firestore();
-      await db
-        .collection("users")
-        .doc(userRecord.uid)
-        .set({ refreshTime: new Date().getTime() });
+      const { hashPassword: _, ...results } = await userRepository.save(user);
 
+      res.locals.data = { user: results };
       next();
     } catch (error) {
       next(error);
     }
   }
 
-  @Post("/user/:user_id")
-  public async user(
+  @Post("/login")
+  public async login(
     req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> {
     try {
-      const { admin } = req.app.locals;
-      await admin.auth().setCustomUserClaims(req.params.user_id, { role: 'user' });
-      
+      const { email, password } = req.body;
+      const { dataSource } = req.app.locals;
+      const userRepository = dataSource.getRepository(User);
+      const sessionRepository = dataSource.getRepository(Session);
+
+      // validate
+      if (!(email && validateEmail(email))) {
+        return next(
+          new BadRequestError("Please enter an valid email address.")
+        );
+      }
+      const user = await userRepository.findOneBy({
+        email,
+      });
+      if (!user) {
+        return next(new NotFoundError("This email is not founded."));
+      }
+      if (user.status !== UserStatus.ACTIVE) {
+        return next(
+          new ForbiddenError(
+            "This account is " + user.status.toLowerCase() + "."
+          )
+        );
+      }
+      if (!password) {
+        return next(new BadRequestError("Please enter your password."));
+      }
+      if (!bcrypt.compareSync(password, user.hashPassword)) {
+        return next(
+          new BadRequestError("Incorrect password. Please try again.")
+        );
+      }
+
+      const accessToken = getAccessToken(user.id);
+      const refreshToken = getRefreshToken(user.id);
+      const session = await sessionRepository.create({
+        user,
+        accessToken,
+        refreshToken,
+        userAgent: req.get("User-Agent"),
+      });
+
+      const results = await sessionRepository.save(session);
+
+      res.cookie("__refreshToken", refreshToken, { httpOnly: true });
+      delete user.hashPassword;
+      res.locals.data = {
+        user,
+        session: {
+          accessToken: results.accessToken,
+        },
+      };
+      next();
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  @Post("/refresh")
+  public async refresh(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { __refreshToken: token } = req.cookies;
+      const { dataSource } = req.app.locals;
+      const sessionRepository = dataSource.getRepository(Session);
+
+      const session = await sessionRepository.findOneBy({
+        refreshToken: token,
+      });
+      if (!session) {
+        return next(new BadRequestError("Invalid refresh token."));
+      }
+      jwt.verify(token, config.jwtRefreshKey);
+
+      const accessToken = getAccessToken(session.user.id);
+      session.accessToken = accessToken;
+      const results = await sessionRepository.save(session);
+
+      res.locals.data = {
+        session: {
+          accessToken: results.accessToken,
+        },
+      };
       next();
     } catch (error) {
       next(error);
