@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class InitPermission1722323212493 implements MigrationInterface {
+export class GrandPermission1722323212493 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `INSERT INTO roles_permissions (role_id, permission_id)
