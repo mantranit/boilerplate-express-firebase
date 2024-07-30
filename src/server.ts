@@ -5,7 +5,7 @@ import { Server } from "socket.io";
 import application from "./application";
 import Logger from "./utils/logger";
 import config from "./utils/config";
-import { AppDataSource } from "./data-source";
+import { AppDataSource } from "./database/data-source";
 
 const { instance: app } = application;
 const httpServer = createServer(app);

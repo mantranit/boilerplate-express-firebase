@@ -6,7 +6,7 @@ export enum UserStatus {
   DISABLED = "DISABLED",
 }
 
-@Entity()
+@Entity("users")
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
@@ -14,7 +14,7 @@ export class User extends BaseEntity {
   @Column()
   email: string;
 
-  @Column()
+  @Column({ name: "hash_password" })
   hashPassword: string;
 
   @Column({

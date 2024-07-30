@@ -17,7 +17,7 @@ interface ConfigValues {
 
 class Config implements ConfigValues {
   env = process.env.NODE_ENV || "development";
-  port = parseInt(process.env.PORT || "8000", 10);
+  port = parseInt(process.env.PORT || "4000", 10);
   dbHost = process.env.DB_HOST || "localhost";
   dbPort = parseInt(process.env.DB_PORT || "5432", 10);
   dbUsername = process.env.DB_USERNAME || "postgres";
