@@ -88,9 +88,7 @@ export default class AuthController {
       const statusAbleToLogin = [UserStatus.ACTIVE, UserStatus.PENDING];
       if (!statusAbleToLogin.includes(user.status)) {
         return next(
-          new ForbiddenError(
-            "This account is " + user.status.toLowerCase() + "."
-          )
+          new ForbiddenError(`This account is ${user.status.toLowerCase()}.`)
         );
       }
       if (!password) {
