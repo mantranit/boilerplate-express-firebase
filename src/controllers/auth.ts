@@ -84,7 +84,9 @@ export default class AuthController {
       if (!user) {
         return next(new NotFoundError("Email was not found."));
       }
-      if (user.status !== UserStatus.ACTIVE) {
+
+      const statusAbleToLogin = [UserStatus.ACTIVE, UserStatus.PENDING];
+      if (!statusAbleToLogin.includes(user.status)) {
         return next(
           new ForbiddenError(
             "This account is " + user.status.toLowerCase() + "."
@@ -104,6 +106,7 @@ export default class AuthController {
       const refreshToken = getRefreshToken(user.id);
       const session = await sessionRepository.create({
         user,
+        email: user.email,
         accessToken,
         refreshToken,
         userAgent: req.get("User-Agent"),

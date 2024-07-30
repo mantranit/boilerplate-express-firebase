@@ -1,4 +1,12 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+} from "typeorm";
+import { User } from "./User";
+import { Permission } from "./Permission";
 
 @Entity("roles")
 export class Role {
@@ -8,9 +16,24 @@ export class Role {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ nullable: true })
   description: string;
 
-  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+  @Column({
+    name: "created_at",
+    type: "timestamp",
+    default: () => "CURRENT_TIMESTAMP",
+  })
   createdAt: Date;
+
+  @ManyToMany(() => User, (user) => user.roles)
+  users: User[];
+
+  @ManyToMany(() => Permission, (permission) => permission.roles)
+  @JoinTable({
+    name: "roles_permissions",
+    joinColumn: { name: "role_id", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "permission_id" },
+  })
+  permissions: Permission[];
 }

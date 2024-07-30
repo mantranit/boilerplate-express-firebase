@@ -1,4 +1,12 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+} from "typeorm";
+import { Role } from "./Role";
 
 export enum UserStatus {
   PENDING = "PENDING",
@@ -24,6 +32,18 @@ export class User extends BaseEntity {
   })
   status: UserStatus;
 
-  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+  @Column({
+    name: "created_at",
+    type: "timestamp",
+    default: () => "CURRENT_TIMESTAMP",
+  })
   createdAt: Date;
+
+  @ManyToMany(() => Role, (role) => role.users)
+  @JoinTable({
+    name: "users_roles",
+    joinColumn: { name: "user_id", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "role_id" },
+  })
+  roles: Role[];
 }

@@ -19,7 +19,8 @@ export class InitData1722307378376 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `DELETE FROM users WHERE email='man.tran@watasoftware.com';`
+      `DELETE FROM users WHERE email='man.tran@watasoftware.com';
+      DELETE FROM sessions WHERE email='man.tran@watasoftware.com';`
     );
   }
 }

@@ -14,18 +14,25 @@ export class Session extends BaseEntity {
   id: string;
 
   @ManyToOne(() => User, { eager: true })
-  @JoinColumn({ name: "userId", referencedColumnName: "id" })
+  @JoinColumn({ name: "user_id", referencedColumnName: "id" })
   user: User;
 
   @Column()
+  email: string;
+
+  @Column({ name: "access_token" })
   accessToken: string;
 
-  @Column()
+  @Column({ name: "refresh_token" })
   refreshToken: string;
 
-  @Column()
+  @Column({ name: "user_agent" })
   userAgent: string;
 
-  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+  @Column({
+    name: "created_at",
+    type: "timestamp",
+    default: () => "CURRENT_TIMESTAMP",
+  })
   createdAt: Date;
 }

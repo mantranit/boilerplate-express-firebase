@@ -1,31 +1,45 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+} from "typeorm";
+import { Role } from "./Role";
 
 @Entity("permissions")
 export class Permission extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column()
-  moduleCode: string;
+  @Column({ name: "module_name" })
+  moduleName: string;
 
-  @Column()
-  functionCode: string;
+  @Column({ name: "function_name" })
+  functionName: string;
 
-  @Column()
+  @Column({ nullable: true })
   description: string;
 
-  @Column({ default: false })
+  @Column({ name: "can_create", default: false })
   canCreate: boolean;
 
-  @Column({ default: false })
+  @Column({ name: "can_read", default: false })
   canRead: boolean;
 
-  @Column({ default: false })
+  @Column({ name: "can_update", default: false })
   canUpdate: boolean;
 
-  @Column({ default: false })
+  @Column({ name: "can_delete", default: false })
   canDelete: boolean;
 
-  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+  @Column({
+    name: "created_at",
+    type: "timestamp",
+    default: () => "CURRENT_TIMESTAMP",
+  })
   createdAt: Date;
+
+  @ManyToMany(() => Role, (role) => role.permissions)
+  roles: Role[];
 }
