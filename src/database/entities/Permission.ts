@@ -30,6 +30,9 @@ export class Permission extends BaseEntity {
   @Column({ name: "can_update", default: false })
   canUpdate: boolean;
 
+  @Column({ name: "can_update_fields", nullable: true, default: null })
+  canUpdateFields: string;
+
   @Column({ name: "can_delete", default: false })
   canDelete: boolean;
 
