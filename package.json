@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon src/server.ts",
-    "build": "rimraf dist && npx tsc",
-    "serve": "cross-env NODE_ENV=production node dist/server.js",
+    "build": "npx tsc",
+    "serve": "cd dist && node server.js",
     "db:up": "npx typeorm-ts-node-commonjs migration:run -d ./src/database/data-source.ts",
     "db:down": "npx typeorm-ts-node-commonjs migration:revert -d ./src/database/data-source.ts"
   },
